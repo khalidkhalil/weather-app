@@ -1,0 +1,139 @@
+
+    <div class="container">
+      <div class="py-5 text-center">
+        <h2>Weather App</h2>
+        <p class="lead">
+           This is a weather app for any city in the world
+        </p>
+        By: Khalid Khalil -- Mobile: 01014734042
+      </div>
+
+      <div class="row">
+       
+        <div class="col-md-8 order-md-1">
+
+                
+                      
+         
+
+        <%= form_for :weather, url: {action: "post_weather"}, html: {class: "nifty_form"} do |form| %>
+
+            <div class="row">
+              <div class="col-md-5 mb-3">
+                <label for="country">Country</label>
+                <%= form.collection_select(:country, Country.all, :alpha2, :name, {:prompt=>true}, {:class=>'custom-select d-block w-100 countries_select'}) %>
+                <div class="invalid-feedback">
+                  Please select a valid country.
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="state">State</label>
+                <select name="weather[city_id]" class="custom-select d-block w-100 cities_select" id="weather[city_id]" required>
+                  <option value="">Choose...</option>
+                </select>
+               
+
+
+                <div class="invalid-feedback">
+                  Please provide a valid state.
+                </div>
+              </div>
+              
+            </div>
+
+            <% end %>
+ 
+        </div>
+      </div>
+
+     
+      <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Temperature of <div id="city_name"></div>
+                <span class="badge badge-primary badge-pill" id="weather_main"></span>
+               
+
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Description
+                <span class="badge badge-primary badge-pill" id="weather_description"></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Humidity
+              <span class="badge badge-primary badge-pill" id="weather_humidity"></span>
+            </li>
+          </ul>
+
+
+    </div>
+
+    <script>
+    
+    $('.selectpicker').selectpicker();
+
+    var country_drp=$('.countries_select').change(function () {
+        clear();
+        $.getJSON('/weather/cities/?id=' + $('.countries_select').val(), function (data) {
+           // console.log(data);
+            $(".cities_select").append("<option value='' selected='selected'></option>");
+
+            $(".cities_select").html($.map(data, function (item, index) {
+                return "<option value='" + item.city_id + "'>" + item.name + " </option>";
+            }));
+        });
+        var cities_select=$(".cities_select");
+
+    
+
+    });
+
+    if(country_drp.val())
+    {
+        $.getJSON('/weather/cities/?id=' + $('.countries_select').val(), function (data) {
+            var city_drp=$(".cities_select");
+
+            // $(".cities_select").prepend("<option value='' selected='selected'></option>");
+            $('.cities_select').append($("<option></option>").attr("value","").text("")); 
+
+            city_drp.html($.map(data, function (item, index) {
+                return "<option value='" + item.city_id + "'>" + item.name + " </option>";
+            }));
+            city_drp.val(city_drp.attr('data-value'));
+        });
+    }
+
+
+ var cities_drp=$('.cities_select').change(function () {
+
+        $.getJSON('/weather/post_weather/?city_id=' + $('.cities_select').val(), function (data) {
+            
+            if (data.cod == 200)
+            {
+                $("#weather_main").text(data.main.temp);
+                $("#weather_humidity").text(data.main.humidity);
+                $("#weather_description").text(data.weather[0]["description"]);
+                $("#city_name").text(data.name);
+            }
+            else 
+            {
+                $("#city_name").text("Sorry There is an error");
+
+            }
+            
+
+        });
+    });
+
+
+    
+    
+
+    function clear() {
+        $("#weather_main").text("");
+        $("#weather_humidity").text("");
+        $("#weather_description").text("");
+        $("#city_name").text("");
+
+    }
+
+    </script>
